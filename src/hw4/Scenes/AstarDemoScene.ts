@@ -24,7 +24,7 @@ export default class AStarDemoScene extends Scene {
     protected path: NavigationPath;
 
     public loadScene(): void {
-        this.load.tilemap("level", "hw4_assets/tilemaps/HW4Tilemap.json");
+        this.load.tilemap("level", "hw4_assets/tilemaps/hw4-tile.json");
         this.load.spritesheet("BlueEnemy", "hw4_assets/spritesheets/BlueEnemy.json");
     }
 
@@ -45,13 +45,14 @@ export default class AStarDemoScene extends Scene {
         navmesh.registerStrategy("astar", new AstarStrategy(navmesh));
         
         // TODO Set the navigation strategy to be A*
-        navmesh.setStrategy("direct");
+        navmesh.setStrategy("astar");
 
         // Create a dummy NPC
         this.npc = this.add.animatedSprite(NPCActor, "BlueEnemy", "primary")
         this.npc.addPhysics();
         this.npc.position.copy(new Vec2(25, 450));
         this.destination = new Vec2(450, 25);
+        this.npc.collisionShape.halfSize.scaleTo(0.25);
 
         // The little blue rectangle in the top-right is where the NPC is trying to get to
         let destination = this.add.graphic(GraphicType.RECT, "primary", {position: this.destination, size: new Vec2(20, 20)})

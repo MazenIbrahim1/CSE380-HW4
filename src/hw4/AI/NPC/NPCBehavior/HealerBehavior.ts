@@ -5,8 +5,8 @@ import GameEvent from "../../../../Wolfie2D/Events/GameEvent";
 import Idle from "../NPCActions/GotoAction";
 import { TargetExists } from "../NPCStatuses/TargetExists";
 import BasicFinder from "../../../GameSystems/Searching/BasicFinder";
-import { ClosestPositioned } from "../../../GameSystems/Searching/HW4Reducers";
-import { BattlerActiveFilter, BattlerGroupFilter, BattlerHealthFilter, ItemFilter, RangeFilter, VisibleItemFilter } from "../../../GameSystems/Searching/HW4Filters";
+import { ClosestPositioned, LowestHealthBattler } from "../../../GameSystems/Searching/HW4Reducers";
+import { AllyFilter, BattlerActiveFilter, BattlerGroupFilter, BattlerHealthFilter, ItemFilter, RangeFilter, VisibleItemFilter } from "../../../GameSystems/Searching/HW4Filters";
 import PickupItem from "../NPCActions/PickupItem";
 import UseHealthpack from "../NPCActions/UseHealthpack";
 import Healthpack from "../../../GameSystems/ItemSystem/Items/Healthpack";
@@ -48,6 +48,24 @@ export default class HealerBehavior extends NPCBehavior  {
         /* ######### Add all healer actions ######## */
 
         // TODO configure the rest of the healer actions
+
+        let pickUp = new PickupItem(this, this.owner);
+        pickUp.targets = scene.getHealthpacks();
+        pickUp.targetFinder = new BasicFinder<Item>(ClosestPositioned(this.owner), VisibleItemFilter(), ItemFilter(Healthpack));
+        pickUp.addPrecondition(HealerStatuses.HPACK_EXISTS);
+        pickUp.addEffect(HealerStatuses.HAS_HPACK);
+        pickUp.cost = 1;
+        this.addState(HealerActions.PICKUP_HPACK, pickUp);
+
+        let usePack = new UseHealthpack(this, this.owner);
+        usePack.targets = scene.getBattlers();
+        usePack.targetFinder = new BasicFinder<Battler>(LowestHealthBattler, BattlerActiveFilter(), AllyFilter(this.owner), BattlerHealthFilter(0, 5));
+        usePack.addPrecondition(HealerStatuses.ALLY_EXISTS);
+        usePack.addPrecondition(HealerStatuses.HAS_HPACK);
+        usePack.addEffect(HealerStatuses.GOAL);
+        usePack.cost = 1;
+        this.addState(HealerActions.USE_HPACK, usePack);
+
 
         // Idle action
         let idle = new Idle(this, this.owner);
